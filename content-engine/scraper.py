@@ -27,12 +27,27 @@ youtube = googleapiclient.discovery.build(api_service_name, api_version, credent
 
 
 def crawl_popular_content():
+    items = []
     request = youtube.videos().list(
         part="snippet,contentDetails,statistics", maxResults=1000, chart="mostPopular", regionCode="US"
     )
     response = request.execute()
-    logger.info([i["id"] + "\n" for i in response["items"]])
-    return response["items"]
+    scroll_num = 0
+    while response.get("nextPageToken", None) is not None:
+        logger.info(f"Scroll {scroll_num}")
+        request = youtube.videos().list(
+            part="snippet,contentDetails,statistics",
+            maxResults=1000,
+            chart="mostPopular",
+            regionCode="US",
+            pageToken=response["nextPageToken"],
+        )
+        response = request.execute()
+        scroll_num += 1
+        if response["items"]:
+            items += response["items"]
+    logger.info(f"Completed {scroll_num} scrolls")
+    return items
 
 
 def get_categories():
@@ -51,6 +66,7 @@ def get_categories():
 def crawl_category(category_name: str):
     category_name_to_id = get_categories()
     if category_name_to_id.get(category_name, None):
+        items = []
         request = youtube.videos().list(
             part="snippet,contentDetails,statistics",
             maxResults=1000,
@@ -59,7 +75,23 @@ def crawl_category(category_name: str):
             videoCategoryId="1",
         )
         response = request.execute()
-        return response["items"]
+        scroll_num = 0
+        while response.get("nextPageToken", None) is not None:
+            logger.info(f"Scroll {scroll_num}")
+            request = youtube.videos().list(
+                part="snippet,contentDetails,statistics",
+                maxResults=1000,
+                chart="mostPopular",
+                regionCode="US",
+                videoCategoryId="1",
+                pageToken=response["nextPageToken"],
+            )
+            response = request.execute()
+            scroll_num += 1
+            if response["items"]:
+                items += response["items"]
+        logger.info(f"Completed {scroll_num} scrolls")
+        return items
     else:
         logger.error(f"Category name not valid: {category_name}")
         raise Exception(f"Not a valid category: {category_name}")
