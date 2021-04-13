@@ -1,12 +1,15 @@
 import argparse
 import os
-import json
+
+# import json
 import coloredlogs
 import logging
 
 import googleapiclient.discovery
 import googleapiclient.errors
 import google.auth
+
+from elasticsearch import Elasticsearch
 
 logger = logging.getLogger(__name__)
 coloredlogs.install(level="DEBUG", logger=logger)
@@ -28,7 +31,7 @@ def crawl_popular_content():
         part="snippet,contentDetails,statistics", maxResults=1000, chart="mostPopular", regionCode="US"
     )
     response = request.execute()
-    logger.info(json.dumps(response, indent=2))
+    logger.info([i["id"] + "\n" for i in response["items"]])
     return response["items"]
 
 
@@ -63,7 +66,9 @@ def crawl_category(category_name: str):
 
 
 if __name__ == "__main__":
-    logger.info(f"--------------------CATEGORIES--------------------\n{json.dumps(get_categories(), indent=2)}")
+    # logger.info(f"--------------------CATEGORIES--------------------\n{json.dumps(get_categories(), indent=2)}")
+    es = Elasticsearch()
+    es.indices.create(index="youtube", ignore=400)
 
     parser = argparse.ArgumentParser()
     parser.add_argument("type", default="by_category", help="Type of YouTube content (popular, by_category)")
@@ -85,8 +90,8 @@ if __name__ == "__main__":
     else:
         raise Exception("Wrong args supplied")
 
-    logger.info(f"Finished Crawling\n{crawled_content}\n-------------------------------")
+    logger.info("Finished Crawling")
     if crawled_content:
-
         for c in crawled_content:
-            logger.info(f"Crawled: {c['id']}")
+            es.update(index="youtube", id=c["id"], body={"doc": c, "doc_as_upsert": True})
+            logger.info(f"Crawled: {c['snippet']['title']}")
