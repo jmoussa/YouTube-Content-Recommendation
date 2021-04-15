@@ -8,7 +8,7 @@ import googleapiclient.errors
 import google.auth
 
 from elasticsearch import Elasticsearch
-from config import config
+from aggtube.config import config
 
 elasticsearch_mapping = {"mappings": config.mappings}
 logger = logging.getLogger(__name__)
@@ -21,7 +21,7 @@ api_service_name = "youtube"
 api_version = "v3"
 
 es = Elasticsearch()
-es.indices.create(index="youtube", body=elasticsearch_mapping, ignore=400)
+es.indices.create(index=config.index_name, body=elasticsearch_mapping, ignore=400)
 
 # Get credentials and create an API client
 credentials, project = google.auth.default(scopes=scopes)
@@ -30,7 +30,7 @@ youtube = googleapiclient.discovery.build(api_service_name, api_version, credent
 
 def get_top_tags_and_crawl():
     query = {"size": 0, "aggs": {"tags": {"terms": {"field": "tags", "size": 50}}}}
-    response = es.search(index="youtube", body=query)
+    response = es.search(index=config.index_name, body=query)
     items = []
     # Get tag names and crawl (youtube.search) youtube and add them to `items`
     for bucket in response["aggregations"]["tags"]["buckets"]:
@@ -59,7 +59,7 @@ def crawl_by_keyword(keyword: str, max_scrolls=10):
             logger.info(f"Completed {scroll_num} scrolls")
             return items
         else:
-            logger.error(f"No content found")
+            logger.error("No content found")
             return items
     except Exception as e:
         logger.error(e)
@@ -92,7 +92,7 @@ def crawl_popular_content(max_scrolls=10):
             logger.info(f"Completed {scroll_num} scrolls")
             return items
         else:
-            logger.error(f"No content found")
+            logger.error("No content found")
             return items
     except Exception as e:
         logger.error(e)
@@ -145,7 +145,7 @@ def crawl_category(category_name: str):
                 logger.info(f"Completed {scroll_num} scrolls")
                 return items
             else:
-                logger.error(f"No content found")
+                logger.error("No content found")
                 return items
         except Exception as e:
             logger.error(e)
@@ -180,7 +180,7 @@ if __name__ == "__main__":
             doc = {k: v for k, v in c.items() if k != "snippet"}
             snippet = c["snippet"]
             doc.update(snippet)
-            es.update(index="youtube", id=c["id"], body={"doc": doc, "doc_as_upsert": True})
+            es.update(index=config.index_name, id=c["id"], body={"doc": doc, "doc_as_upsert": True})
             logger.info(f"Crawled: {c['snippet']['title']}")
     else:
         logger.info("No crawled content")

@@ -1,6 +1,10 @@
 import logging
 from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
+from elasticsearch import Elasticsearch
+from aggtube.config import config
+
+elasticsearch_mapping = {"mappings": config.mappings}
 
 app = FastAPI()
 logger = logging.getLogger(__name__)
@@ -25,6 +29,8 @@ app.add_middleware(
 @app.on_event("startup")
 async def startup_event():
     logger.info("Starting up")
+    es = Elasticsearch()
+    es.indices.create(index=config.index_name, body=elasticsearch_mapping, ignore=400)
 
 
 @app.on_event("shutdown")
