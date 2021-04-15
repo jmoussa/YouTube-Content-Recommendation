@@ -19,6 +19,8 @@ python setup.py develop # installs dependencies (to the conda environment)
 
 ## To run the Content-Engine's scraper
 
+Call the scraper script and supply it with __one__ of the 3 options shown below:
+
 ```bash
 python aggtube/content-engine/scraper.py popular|categories|top_tags
 ```
