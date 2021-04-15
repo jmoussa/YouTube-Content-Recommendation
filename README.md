@@ -31,3 +31,4 @@ Each option crawls content by that specific criteria from YouTube
 ```bash
 ./run_api_server
 ```
+__Navigate to `localhost:8000/docs` to view the API Documentation__
