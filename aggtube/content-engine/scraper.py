@@ -29,16 +29,16 @@ youtube = googleapiclient.discovery.build(api_service_name, api_version, credent
 
 
 def get_top_tags_and_crawl():
-    body = {"size": 0, "aggs": {"tags": {"terms": {"field": "tags", "size": 50}}}}
-    response = es.search(index="youtube", body=body)
+    query = {"size": 0, "aggs": {"tags": {"terms": {"field": "tags", "size": 50}}}}
+    response = es.search(index="youtube", body=query)
     items = []
+    # Get tag names and crawl (youtube.search) youtube and add them to `items`
     for bucket in response["aggregations"]["tags"]["buckets"]:
         logger.info(f"Querying {bucket['key']}")
         content = crawl_by_keyword(bucket["key"])
         items += content
     logger.info(f"Parsed {len(items)} pieces of content")
     return items
-    # crawl_by_keyword(tag)
 
 
 def crawl_by_keyword(keyword: str, max_scrolls=10):
@@ -158,7 +158,7 @@ def crawl_category(category_name: str):
 if __name__ == "__main__":
     # logger.info(f"--------------------CATEGORIES--------------------\n{json.dumps(get_categories(), indent=2)}")
     parser = argparse.ArgumentParser()
-    parser.add_argument("type", default="categories", help="Type of YouTube content (popular, categories, top_tags)")
+    parser.add_argument("type", default="popular", help="Type of YouTube content (popular, categories, top_tags)")
     args = parser.parse_args()
 
     if args.type == "popular":
