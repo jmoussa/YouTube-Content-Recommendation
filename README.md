@@ -1,4 +1,4 @@
-# YouTube Content Recommendator API
+# YouTube Content Recommendation Service
 
 This repo will host all of the backend code related to fetching Youtube Content in order to showcase on the front-end (comming soon).
 
