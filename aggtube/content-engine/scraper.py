@@ -160,7 +160,9 @@ def format_for_indexing(content):
     snippet = c["snippet"]
     doc.update(snippet)
     doc["metrics"] = content["statistics"]
-    doc["like_dislike_ratio"] = content["statistics"]["likeCount"] / content["statistics"]["dislikeCount"]
+    doc["metrics"]["likeDislikeRatio"] = float(
+        int(content["statistics"]["likeCount"]) / int(content["statistics"]["dislikeCount"])
+    )
     return doc
 
 

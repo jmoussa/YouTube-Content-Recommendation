@@ -10,13 +10,13 @@ router = APIRouter()
 es = Elasticsearch()
 
 
-@router.get("/most_liked", tags=["Popular Content"])
+@router.get("/liked", tags=["Content"])
 async def get_top_100_most_liked():
     """
     Get Top 100 Most Liked videos
     TODO: Use better metric for popularity?
     """
-    query = {"size": 100, "sort": [{"statistics.viewCount": {"order": "desc"}}]}
+    query = {"size": 100, "sort": [{"metrics.viewCount": {"order": "desc"}}]}
     response = es.search(index=config.index_name, body=query)
     try:
         res = response["hits"]["hits"]
@@ -26,16 +26,17 @@ async def get_top_100_most_liked():
         return response
 
 
-@router.get("/controversial", tags=["Popular Content"])
-async def get_top_100_controversial():
+@router.get("/controversial", tags=["Content"])
+async def get_videos_with_more_dislikes_than_likes():
     """
     Most controversial is grabbed using this function: dislikes > likes
     """
     query = {
         "size": 100,
-        "script_fields": {
-            "controversy_diff": {"script": 'doc["statistics.likeCount"].value - doc["statistics.dislikeCount"].value'}
+        "query": {
+            "range": {"metrics.likeDislikeRatio": {"lte": 1, "boost": 2.0}},
         },
+        "sort": [{"metrics.likeDislikeRatio": {"order": "desc"}}],
     }
     response = es.search(index=config.index_name, body=query)
     try:
