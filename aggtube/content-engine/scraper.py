@@ -155,6 +155,15 @@ def crawl_category(category_name: str):
         raise Exception(f"Not a valid category: {category_name}")
 
 
+def format_for_indexing(content):
+    doc = {k: v for k, v in content.items() if k != "snippet" and k != "statistics"}
+    snippet = c["snippet"]
+    doc.update(snippet)
+    doc["metrics"] = content["statistics"]
+    doc["like_dislike_ratio"] = content["statistics"]["likeCount"] / content["statistics"]["dislikeCount"]
+    return doc
+
+
 if __name__ == "__main__":
     # logger.info(f"--------------------CATEGORIES--------------------\n{json.dumps(get_categories(), indent=2)}")
     parser = argparse.ArgumentParser()
@@ -177,9 +186,8 @@ if __name__ == "__main__":
     logger.info("Finished Crawling")
     if crawled_content:
         for c in crawled_content:
-            doc = {k: v for k, v in c.items() if k != "snippet"}
-            snippet = c["snippet"]
-            doc.update(snippet)
+            doc = format_for_indexing(c)
+
             es.update(index=config.index_name, id=c["id"], body={"doc": doc, "doc_as_upsert": True})
             logger.info(f"Crawled: {c['snippet']['title']}")
     else:
