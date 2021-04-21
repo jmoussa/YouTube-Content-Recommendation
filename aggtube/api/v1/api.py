@@ -29,13 +29,12 @@ async def get_top_100_most_liked():
 @router.get("/controversial", tags=["Content"])
 async def get_videos_with_more_dislikes_than_likes():
     """
-    Most controversial is grabbed using this function: dislikes > likes
+    Most controversial is grabbed using the ratio of dislikes:likes <= 1.
+    So a video with more dislikes or a relatively high amount of dislikes will qualify as "controversial"
     """
     query = {
         "size": 100,
-        "query": {
-            "range": {"metrics.likeDislikeRatio": {"lte": 1, "boost": 2.0}},
-        },
+        "query": {"range": {"metrics.likeDislikeRatio": {"lte": 1, "boost": 2.0}}},
         "sort": [{"metrics.likeDislikeRatio": {"order": "desc"}}],
     }
     response = es.search(index=config.index_name, body=query)
