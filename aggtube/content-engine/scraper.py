@@ -2,6 +2,7 @@ import argparse
 import os
 import coloredlogs
 import logging
+import time
 
 import googleapiclient.discovery
 import googleapiclient.errors
@@ -50,6 +51,7 @@ def crawl_by_keyword(keyword: str, max_scrolls=10):
             items += response["items"]
             scroll_num = 0
             while response.get("nextPageToken", None) is not None and scroll_num < max_scrolls:
+                time.sleep(3)
                 request = youtube.search().list(part="snippet", maxResults=50, q=keyword)
                 response = request.execute()
                 scroll_num += 1
@@ -77,6 +79,7 @@ def crawl_popular_content(max_scrolls=10):
             items += response["items"]
             scroll_num = 0
             while response.get("nextPageToken", None) is not None and scroll_num < max_scrolls:
+                time.sleep(3)
                 request = youtube.videos().list(
                     part="snippet,contentDetails,statistics",
                     maxResults=1000,
@@ -129,6 +132,7 @@ def crawl_category(category_name: str):
                 items += response["items"]
                 scroll_num = 0
                 while response.get("nextPageToken", None) is not None:
+                    time.sleep(3)
                     request = youtube.videos().list(
                         part="snippet,contentDetails,statistics",
                         maxResults=1000,
