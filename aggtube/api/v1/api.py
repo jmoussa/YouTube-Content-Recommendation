@@ -10,13 +10,25 @@ router = APIRouter()
 es = Elasticsearch()
 
 
-@router.get("/liked", tags=["Content"])
-async def get_top_100_most_liked():
+@router.get("/top_liked/{tags}", tags=["Content"])
+async def get_top_100_most_liked(tags: str = ""):
     """
     Get Top 100 Most Liked videos
-    TODO: Use better metric for popularity?
+
+    :param tags: comma separated list of tags to filter, if left as none, then it will not filter by tags
     """
-    query = {"size": 100, "sort": [{"metrics.viewCount": {"order": "desc"}}]}
+    if tags == "":
+        query = {"size": 100, "sort": [{"metrics.viewCount": {"order": "desc"}}]}
+    else:
+        tags = tags.split(",")
+        query = {
+            "size": 100,
+            "query": {
+                "terms": {"tags": tags, "boost": 2.0},
+                "range": {"metrics.likeDislikeRatio": {"lte": 1, "boost": 1.0}},
+            },
+            "sort": [{"metrics.viewCount": {"order": "desc"}}],
+        }
     response = es.search(index=config.index_name, body=query)
     try:
         res = response["hits"]["hits"]
@@ -26,17 +38,30 @@ async def get_top_100_most_liked():
         return response
 
 
-@router.get("/controversial", tags=["Content"])
-async def get_videos_with_more_dislikes_than_likes():
+@router.get("/controversial/{tags}", tags=["Content"])
+async def get_videos_with_more_dislikes_than_likes(tags: str = ""):
     """
-    Most controversial is grabbed using the ratio of dislikes:likes <= 1.
+    Get the top controversial videos using the ratio of likes:dislikes <= 1.
     So a video with more dislikes or a relatively high amount of dislikes will qualify as "controversial"
+
+    :param tags: comma separated list of tags to filter, if left as none, then it will not filter by tags
     """
-    query = {
-        "size": 100,
-        "query": {"range": {"metrics.likeDislikeRatio": {"lte": 1, "boost": 2.0}}},
-        "sort": [{"metrics.likeDislikeRatio": {"order": "desc"}}],
-    }
+    if tags == "":
+        query = {
+            "size": 100,
+            "query": {"range": {"metrics.likeDislikeRatio": {"lte": 1, "boost": 2.0}}},
+            "sort": [{"metrics.likeDislikeRatio": {"order": "desc"}}],
+        }
+    else:
+        tags = tags.split(",")
+        query = {
+            "size": 100,
+            "query": {
+                "terms": {"tags": tags, "boost": 2.0},
+                "range": {"metrics.likeDislikeRatio": {"lte": 1, "boost": 1.0}},
+            },
+            "sort": [{"metrics.likeDislikeRatio": {"order": "desc"}}],
+        }
     response = es.search(index=config.index_name, body=query)
     try:
         res = response["hits"]["hits"]
