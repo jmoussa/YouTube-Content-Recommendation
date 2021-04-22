@@ -3,6 +3,7 @@ from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
 from elasticsearch import Elasticsearch
 from aggtube.config import config
+from aggtube.api.v1 import router as api_router
 
 elasticsearch_mapping = {"mappings": config.mappings}
 
@@ -38,4 +39,4 @@ async def shutdown_event():
     logger.info("Shutting Down")
 
 
-# app.include_router(api_router, prefix="/api")
+app.include_router(api_router, prefix="/api")
