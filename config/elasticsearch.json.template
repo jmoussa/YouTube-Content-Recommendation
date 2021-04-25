@@ -1,0 +1,350 @@
+{
+  "tag_mappings": {
+    "dynamic": "strict",
+    "properties": {
+      "id": {
+        "type": "text"
+      },
+      "tag": {
+        "type": "text"
+      }
+    }
+  },
+  "mappings": {
+    "dynamic": "strict",
+    "properties": {
+      "categoryId": {
+        "type": "text",
+        "fields": {
+          "keyword": {
+            "type": "keyword",
+            "ignore_above": 256
+          }
+        }
+      },
+      "channelId": {
+        "type": "text",
+        "fields": {
+          "keyword": {
+            "type": "keyword",
+            "ignore_above": 256
+          }
+        }
+      },
+      "channelTitle": {
+        "type": "text",
+        "fields": {
+          "keyword": {
+            "type": "keyword",
+            "ignore_above": 256
+          }
+        }
+      },
+      "contentDetails": {
+        "properties": {
+          "caption": {
+            "type": "text",
+            "fields": {
+              "keyword": {
+                "type": "keyword",
+                "ignore_above": 256
+              }
+            }
+          },
+          "contentRating": {
+            "type": "object"
+          },
+          "definition": {
+            "type": "text",
+            "fields": {
+              "keyword": {
+                "type": "keyword",
+                "ignore_above": 256
+              }
+            }
+          },
+          "dimension": {
+            "type": "text",
+            "fields": {
+              "keyword": {
+                "type": "keyword",
+                "ignore_above": 256
+              }
+            }
+          },
+          "duration": {
+            "type": "text",
+            "fields": {
+              "keyword": {
+                "type": "keyword",
+                "ignore_above": 256
+              }
+            }
+          },
+          "licensedContent": {
+            "type": "boolean"
+          },
+          "projection": {
+            "type": "text",
+            "fields": {
+              "keyword": {
+                "type": "keyword",
+                "ignore_above": 256
+              }
+            }
+          },
+          "regionRestriction": {
+            "properties": {
+              "allowed": {
+                "type": "text",
+                "fields": {
+                  "keyword": {
+                    "type": "keyword",
+                    "ignore_above": 256
+                  }
+                }
+              },
+              "blocked": {
+                "type": "text",
+                "fields": {
+                  "keyword": {
+                    "type": "keyword",
+                    "ignore_above": 256
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "defaultAudioLanguage": {
+        "type": "text",
+        "fields": {
+          "keyword": {
+            "type": "keyword",
+            "ignore_above": 256
+          }
+        }
+      },
+      "defaultLanguage": {
+        "type": "text",
+        "fields": {
+          "keyword": {
+            "type": "keyword",
+            "ignore_above": 256
+          }
+        }
+      },
+      "description": {
+        "type": "text",
+        "fields": {
+          "keyword": {
+            "type": "keyword",
+            "ignore_above": 256
+          }
+        }
+      },
+      "etag": {
+        "type": "text",
+        "fields": {
+          "keyword": {
+            "type": "keyword",
+            "ignore_above": 256
+          }
+        }
+      },
+      "id": {
+        "type": "text",
+        "fields": {
+          "keyword": {
+            "type": "keyword",
+            "ignore_above": 256
+          }
+        }
+      },
+      "kind": {
+        "type": "text",
+        "fields": {
+          "keyword": {
+            "type": "keyword",
+            "ignore_above": 256
+          }
+        }
+      },
+      "liveBroadcastContent": {
+        "type": "text",
+        "fields": {
+          "keyword": {
+            "type": "keyword",
+            "ignore_above": 256
+          }
+        }
+      },
+      "localized": {
+        "properties": {
+          "description": {
+            "type": "text",
+            "fields": {
+              "keyword": {
+                "type": "keyword",
+                "ignore_above": 256
+              }
+            }
+          },
+          "title": {
+            "type": "text",
+            "fields": {
+              "keyword": {
+                "type": "keyword",
+                "ignore_above": 256
+              }
+            }
+          }
+        }
+      },
+      "publishedAt": {
+        "type": "date"
+      },
+      "metrics": {
+        "type": "nested",
+        "properties": {
+          "commentCount": {
+            "type": "integer"
+          },
+          "dislikeCount": {
+            "type": "integer"
+          },
+          "favoriteCount": {
+            "type": "integer"
+          },
+          "likeCount": {
+            "type": "integer"
+          },
+          "viewCount": {
+            "type": "integer"
+          },
+          "likeDislikeRatio": {
+            "type": "double"
+          }
+        }
+      },
+      "tags": {
+        "type": "keyword",
+        "fields": {
+          "keyword": {
+            "type": "keyword",
+            "ignore_above": 256
+          }
+        }
+      },
+      "thumbnails": {
+        "properties": {
+          "default": {
+            "properties": {
+              "height": {
+                "type": "long"
+              },
+              "url": {
+                "type": "text",
+                "fields": {
+                  "keyword": {
+                    "type": "keyword",
+                    "ignore_above": 256
+                  }
+                }
+              },
+              "width": {
+                "type": "long"
+              }
+            }
+          },
+          "high": {
+            "properties": {
+              "height": {
+                "type": "long"
+              },
+              "url": {
+                "type": "text",
+                "fields": {
+                  "keyword": {
+                    "type": "keyword",
+                    "ignore_above": 256
+                  }
+                }
+              },
+              "width": {
+                "type": "long"
+              }
+            }
+          },
+          "maxres": {
+            "properties": {
+              "height": {
+                "type": "long"
+              },
+              "url": {
+                "type": "text",
+                "fields": {
+                  "keyword": {
+                    "type": "keyword",
+                    "ignore_above": 256
+                  }
+                }
+              },
+              "width": {
+                "type": "long"
+              }
+            }
+          },
+          "medium": {
+            "properties": {
+              "height": {
+                "type": "long"
+              },
+              "url": {
+                "type": "text",
+                "fields": {
+                  "keyword": {
+                    "type": "keyword",
+                    "ignore_above": 256
+                  }
+                }
+              },
+              "width": {
+                "type": "long"
+              }
+            }
+          },
+          "standard": {
+            "properties": {
+              "height": {
+                "type": "long"
+              },
+              "url": {
+                "type": "text",
+                "fields": {
+                  "keyword": {
+                    "type": "keyword",
+                    "ignore_above": 256
+                  }
+                }
+              },
+              "width": {
+                "type": "long"
+              }
+            }
+          }
+        }
+      },
+      "title": {
+        "type": "text",
+        "fields": {
+          "keyword": {
+            "type": "keyword",
+            "ignore_above": 256
+          }
+        }
+      }
+    }
+  }
+}
