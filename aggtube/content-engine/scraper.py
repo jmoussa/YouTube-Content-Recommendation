@@ -3,15 +3,15 @@ import os
 import coloredlogs
 import logging
 import time
-
 import googleapiclient.discovery
 import googleapiclient.errors
 import google.auth
 
-from elasticsearch import Elasticsearch
+from elasticsearch import Elasticsearch, helpers
 from aggtube.config import config
 
 elasticsearch_mapping = {"mappings": config.mappings}
+elasticsearch_tag_mapping = {"mappings": config.tag_mappings}
 logger = logging.getLogger(__name__)
 coloredlogs.install(level="DEBUG", logger=logger)
 
@@ -22,7 +22,8 @@ api_service_name = "youtube"
 api_version = "v3"
 
 es = Elasticsearch()
-es.indices.create(index=config.index_name, body=elasticsearch_mapping, ignore=400)
+es.indices.create(index=config.content_index, body=elasticsearch_mapping, ignore=400)
+es.indices.create(index=config.tags_index, body=elasticsearch_tag_mapping, ignore=400)
 
 # Get credentials and create an API client
 credentials, project = google.auth.default(scopes=scopes)
@@ -42,7 +43,7 @@ def get_top_tags_and_crawl():
     return items
 
 
-def crawl_by_keyword(keyword: str, max_scrolls=10):
+def crawl_by_keyword(keyword: str, max_scrolls=1):
     items = []
     try:
         request = youtube.search().list(part="snippet", maxResults=50, q=keyword)
@@ -68,7 +69,7 @@ def crawl_by_keyword(keyword: str, max_scrolls=10):
         return items
 
 
-def crawl_popular_content(max_scrolls=10):
+def crawl_popular_content(max_scrolls=1):
     items = []
     try:
         request = youtube.videos().list(
@@ -159,15 +160,27 @@ def crawl_category(category_name: str):
         raise Exception(f"Not a valid category: {category_name}")
 
 
-def format_for_indexing(content):
+def format_for_indexing(content, index, bulk: bool = False):
     doc = {k: v for k, v in content.items() if k != "snippet" and k != "statistics"}
-    snippet = c["snippet"]
-    doc.update(snippet)
-    doc["metrics"] = content["statistics"]
-    doc["metrics"]["likeDislikeRatio"] = float(
-        int(content["statistics"]["likeCount"]) / int(content["statistics"]["dislikeCount"])
-    )
-    return doc
+
+    # content specific code (should probably move out of here)
+    if index == config.content_index:
+        snippet = content["snippet"]
+        doc.update(snippet)
+        doc["metrics"] = content["statistics"]
+        if doc["metrics"].get("likeCount", None) and doc["metrics"].get("dislikeCount", None):
+            doc["metrics"]["likeDislikeRatio"] = float(
+                int(doc["metrics"]["likeCount"]) / int(doc["metrics"]["dislikeCount"])
+            )
+
+    formatted_bulk_document = {
+        "_op_type": "update",
+        "_index": index,
+        "_id": doc["id"],
+        "doc": doc,
+        "doc_as_upsert": True,
+    }
+    return formatted_bulk_document if bulk else doc
 
 
 if __name__ == "__main__":
@@ -190,11 +203,25 @@ if __name__ == "__main__":
         raise Exception("Wrong args supplied")
 
     logger.info("Finished Crawling")
+    logger.info("Indexing Content")
     if crawled_content:
+        docs = []
+        tag_docs = []
         for c in crawled_content:
-            doc = format_for_indexing(c)
+            doc = format_for_indexing(c, config.content_index, bulk=True)
+            docs.append(doc)
 
-            es.update(index=config.index_name, id=c["id"], body={"doc": doc, "doc_as_upsert": True})
-            logger.info(f"Crawled: {c['snippet']['title']}")
+            # tag extraction
+            raw_doc = doc["doc"]
+            tag_list = raw_doc.get("tags", None)
+            if tag_list:
+                tag_docs += [
+                    format_for_indexing(tag_doc, config.tags_index, bulk=True)
+                    for tag_doc in [{"tag": tag, "id": tag} for tag in tag_list]
+                ]
+            logger.info(f"Processed: {doc['doc']['title']} and {tag_list}")
+
+        # bulk upsert
+        helpers.bulk(es, tag_docs + docs)
     else:
         logger.info("No crawled content")
