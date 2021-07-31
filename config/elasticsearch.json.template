@@ -10,6 +10,8 @@
       }
     }
   },
+  "content_index": "content",
+  "tags_index": "tags",
   "mappings": {
     "dynamic": "strict",
     "properties": {
